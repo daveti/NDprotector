@@ -107,7 +107,7 @@ NDprotector.configured_addresses = \
 		        # ext = None ),
 
 			# list of configured prefixes where autoconfiguration will be applied
-			Address(interface = "eth0",
+			NDprotector.Address(interface = "eth0",
 			prefix = "fe80::",
 			key = "/etc/NDprotector/key.pem"), # if ommited,  uses the key pointed by default_publickey
 			# or fallback (when default_publickey is None) and the program will compute a new RSA key

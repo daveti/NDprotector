@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/python
 """a small tool to generate configuration file for CGA addresses"""
 
 import warnings

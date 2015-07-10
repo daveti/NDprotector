@@ -104,7 +104,7 @@ NDprotector.configured_addresses = \
 		        # ext = None ),
 
 			# list of configured prefixes where autoconfiguration will be applied
-			Address(interface = "eth0",
+			NDprotector.Address(interface = "eth0",
 			prefix = "fe80::",
                         # must correspond to the public key linked to cert path1-level1.pem and path2-level1.pem
 			key = "/etc/NDprotector/router_pk.pem"), # if ommited, uses the key pointed by default_publickey

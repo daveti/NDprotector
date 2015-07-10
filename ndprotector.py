@@ -1,4 +1,4 @@
-#!/usr/bin/python2.6
+#!/usr/bin/python
 # author: Tony Cheneau <tony.cheneau@it-sudparis.eu>
 
 '''This program protects incomimg and outgoing NDP packets with the SEND
