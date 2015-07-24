@@ -5879,10 +5879,17 @@ class CGAParams(Packet):
         Return the 112-bits Hash2 value as described in section 3
         of RFC 3972.
         """
+	'''
+	daveti: this is NOT Hash2 used in the CGA verification
         tmp = self.copy()
         tmp.prefix = "::"
         tmp.ccount = 0
-        s = SHA.new(str(tmp)).digest()
+	'''
+	# Hash2 based on CGA verification
+	ext_str = "".join(map(lambda x: str(x), self.ext))
+	key_str = str(self.pubkey)
+	s = "".join((self.modifier, '\x00\x00\x00\x00\x00\x00\x00\x00\x00', key_str, ext_str))
+	s = SHA.new(str(tmp)).digest()
         return s[:14]
 
 def CGAgen1(prefix,key,sec,ext=[],modifier=None,ccount=None):
@@ -5919,8 +5926,13 @@ def CGAgen1(prefix,key,sec,ext=[],modifier=None,ccount=None):
 
     # 2, 3
     # we skip 2 and 3 if the modifier is fixed during the call
+    # daveti: The RFC says that we could skip 2-3 if sec=0 rather than a fixed modifier.
+    # Even if the modifier is fixed, as long as sec!=0, we need to update the modifier.
+    # The implication seems that the fixed modifier should only be used with sec=0 if we
+    # want the modifier to be fixed!
     key_str = str(key)
-    if not modifier:
+    #if not modifier:
+    if sec != 0:
         while True:
             # TC: seems more optimized
             # s = m + '\x00'*9 + key_str + ext_str
