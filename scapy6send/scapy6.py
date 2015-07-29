@@ -5889,7 +5889,7 @@ class CGAParams(Packet):
 	ext_str = "".join(map(lambda x: str(x), self.ext))
 	key_str = str(self.pubkey)
 	s = "".join((self.modifier, '\x00\x00\x00\x00\x00\x00\x00\x00\x00', key_str, ext_str))
-	s = SHA.new(str(tmp)).digest()
+	s = SHA.new(str(s)).digest()
         return s[:14]
 
 def CGAgen1(prefix,key,sec,ext=[],modifier=None,ccount=None):
