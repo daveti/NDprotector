@@ -4,6 +4,7 @@ from NDprotector.Plugin import init_plugin_path,\
                 load_plugins, \
                 find_plugins
 from NDprotector.Log import warn
+from NDprotector.Address import Address
 
 
 def readconfig(config_file):
