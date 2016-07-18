@@ -1,6 +1,10 @@
 """this module processes all the in-going packets by using nfqueue"""
 from socket import AF_INET6
 import sys
+import ctypes # jochoi: import to use if_indextoname
+import ctypes.util # jochoi: import to use if_indextoname
+
+libc = ctypes.CDLL(ctypes.util.find_library('c')) # jochoi: needed for if_indextoname
 
 from NDprotector.Log import warn
 
@@ -21,6 +25,18 @@ try:
 except ImportError:
     pass
 
+# jochoi: begin if_indextoname to replace get_if_list function
+def if_indextoname(index):
+    if not isinstance(index, int):
+        raise TypeError ('provided index should be an int value');
+    libc.if_indextoname.argtypes = [ctypes.c_uint32, ctypes.c_char_p]
+    libc.if_indextoname.restype = ctypes.c_char_p
+    ifname = ctypes.create_string_buffer(32)
+    ifname = libc.if_indextoname (index, ifname)
+    if not ifname:
+        raise RuntimeError ("Invalid index")
+    return ifname
+# jochoi: end if_indextoname
 
 def callback(i, payload):
     """a callback function called on each ingoing packets"""
@@ -36,14 +52,28 @@ def callback(i, payload):
         signalgs = []
         verifalgs = []
 
+    print "In.py  | Interface index is : %s" % payload.get_indev() # jochoi: debug
+    print "In.py  | Interface name is  : %s" % if_indextoname(payload.get_indev()) # jochoi: debug
+
     # may be buggy due to the order of get_if_list()
     # (in that case, we could use the if_nametoindex() )
-    interface = get_if_list()[ payload.get_indev() - 1]
+    # interface = get_if_list()[ payload.get_indev() - 1]
+    interface = if_indextoname(payload.get_indev()) # jochoi: edit
 
     nc = NeighCache()
 
     if packet.haslayer(ICMPv6ND_NS) \
        or packet.haslayer(ICMPv6ND_NA):
+
+	# jochoi: begin debug to match arpsec02 printout
+        if packet.haslayer(ICMPv6ND_NS):
+            print "In.py  | Received NS message"
+        else:
+            print "In.py  | Received NA message"
+        
+        print "In.py  | Source address: %s" % packet[IPv6].src
+        print "In.py  | Target address: %s" % packet[IPv6].tgt
+        # jochoi: end debug to match arpsec02
 
         secured = False
         try:
@@ -51,6 +81,7 @@ def callback(i, payload):
             # we can receive messages from other node performing a DAD
             if address == "::":
                 address = packet.tgt
+	    print "In.py  | About to invoke CGAverify, check 1" # jochoi: debug
             cga_prop = CGAverify(address,packet.getlayer(CGAParams))
             if not cga_prop:
                 warn("an ingoing packet has failed CGA verification test\n")
@@ -60,6 +91,7 @@ def callback(i, payload):
                 # Timestamp and Nonce verification are performed in the NC
                 # FIXME: this is not "good", we are subject to a DoS attack here
 
+                print "In.py  | CGAverify successful" # jochoi: debug
                 list_of_pubkeys = CGAPKExtListtoPubKeyList(packet[CGAParams].ext)
                 list_of_pubkeys.insert(0,packet[CGAParams].pubkey)
                 pubkey = list_of_pubkeys[packet[ICMPv6NDOptUSSig].pos]
@@ -79,6 +111,7 @@ def callback(i, payload):
                             warn("an ingoing packet has failed Universal Signature verification\n")
                         else:
                             secured = True
+			    print "In.py  | Set secured to TRUE" # jochoi: debug
 
         except AttributeError:
             warn("An unsecured packet passed\n")
@@ -200,7 +233,8 @@ def callback(i, payload):
                    and pubkey.modulusLen <= NDprotector.max_RSA_key_size))\
                    or\
                    (NDprotector.ECCsupport and isinstance(pubkey, ECCkey)):
-
+	  
+		    print "About to invoke CGAverify in In.py, check 2" # jochoi: debug
                     if CGAverify(packet[IPv6].src,packet.getlayer(CGAParams)) and \
                        packet[ICMPv6NDOptUSSig].keyh ==  pkhash and \
                        packet[ICMPv6NDOptUSSig].verify_sig(pubkey):

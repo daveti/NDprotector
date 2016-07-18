@@ -31,25 +31,33 @@ def callback(i,payload):
        or packet.haslayer(ICMPv6ND_NA):
 
         for addr in configured_addresses:
+	    print "Out.py | addr in config %s" % str(addr) # jochoi: debug
+	    print "Out.py | source address %s" % packet[IPv6].src # jochoi: debug
             if str(addr) == packet[IPv6].src:
+		print "Out.py | addr in config matches packet source address" # jochoi: debug
                 if packet.haslayer(ICMPv6ND_NS):
                     nonce = "".join([ chr(random.randrange(255))  for i in range(6)])
                     nc.record_nonce_out(packet[IPv6].src,packet[IPv6].dst,nonce)
                 else:
                     nonce = nc.pop_nonce_out(packet[IPv6].src,packet[IPv6].dst)
                 data = addr.sign(data,nonce=nonce)
-                warn("signing a NS or NA message\n")
+		# jochoi: split warning for NS and NA messages
+                # warn("signing a NS or NA message\n")
+		if packet.haslayer(ICMPv6ND_NS):
+		    warn("signing a NS message\n")
+		else:
+		    warn("signing a NA message\n")
                 payload.set_verdict_modified(nfqueue.NF_ACCEPT,str(data),len(str(data)))
                 return 0
-        else:
-            if NDprotector.mixed_mode:
-                warn("letting go one outgoing unsecured packet\n")
-                payload.set_verdict(nfqueue.NF_ACCEPT)
-                return
             else:
-                warn("dropping one unsecured packet\n")
-                payload.set_verdict(nfqueue.NF_DROP)
-                return 0
+                if NDprotector.mixed_mode:
+                    warn("letting go one outgoing unsecured packet\n")
+                    payload.set_verdict(nfqueue.NF_ACCEPT)
+                    return 0 # added return 0
+                else:
+                    warn("dropping one unsecured packet\n")
+                    payload.set_verdict(nfqueue.NF_DROP)
+                    return 0
     elif packet.haslayer(ICMPv6ND_RS):
         if NDprotector.is_router == False:
             if packet[IPv6].src == "::" :
@@ -69,15 +77,15 @@ def callback(i,payload):
                         data = addr.sign(data,nonce=nonce)
                         payload.set_verdict_modified(nfqueue.NF_ACCEPT, str(data), len(str(data)))
                         return 0
-                else:
-                    if NDprotector.mixed_mode:
-                        warn("letting go one outgoing unsecure RS packet\n")
-                        payload.set_verdict(nfqueue.NF_ACCEPT)
-                        return 0
                     else:
-                        warn("dropping one unsecure RS packet\n")
-                        payload.set_verdict(nfqueue.NF_DROP)
-                        return 0
+                        if NDprotector.mixed_mode:
+                            warn("letting go one outgoing unsecure RS packet\n")
+                            payload.set_verdict(nfqueue.NF_ACCEPT)
+                            return 0
+                        else:
+                            warn("dropping one unsecure RS packet\n")
+                            payload.set_verdict(nfqueue.NF_DROP)
+                            return 0
         else:
             # a router does not send this kind of messages
             payload.set_verdict(nfqueue.NF_DROP)
@@ -97,15 +105,15 @@ def callback(i,payload):
                     data = addr.sign(data,nonce=nonce)
                     payload.set_verdict_modified(nfqueue.NF_ACCEPT,str(data),len(str(data)))
                     return 0
-            else:
-                if NDprotector.mixed_mode:
-                    warn("letting go one outgoing unsecure RA packet\n")
-                    payload.set_verdict(nfqueue.NF_ACCEPT)
-                    return 0
                 else:
-                    warn("dropping one unsecure RA packet\n")
-                    payload.set_verdict(nfqueue.NF_DROP)
-                    return 0
+                    if NDprotector.mixed_mode:
+                        warn("letting go one outgoing unsecure RA packet\n")
+                        payload.set_verdict(nfqueue.NF_ACCEPT)
+                        return 0
+                    else:
+                        warn("dropping one unsecure RA packet\n")
+                        payload.set_verdict(nfqueue.NF_DROP)
+                        return 0
         else:
            # a host does not send RA messages
            payload.set_verdict(nfqueue.NF_DROP)

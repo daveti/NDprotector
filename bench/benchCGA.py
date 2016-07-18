@@ -15,6 +15,7 @@ from scapy6send.ecc import *
 from scapy6send.cert import *
 from scapy6send.scapy6 import *
 from NDprotector.Tool import PubKeyListtoCGAPKExtList
+from math import * # cynthiao
 
 sigtypeID = 9
 extrakeynum =3
@@ -80,7 +81,7 @@ def gen_cga(key):
             ext = PubKeyListtoCGAPKExtList([ key for i in range(extrakeynum)]) )
 
 def bench_single_ecc():
-    for i in range(10000):
+    for i in range(100):
         k = compute_key()
         # computes a CGA address
         before = time.time()
@@ -127,11 +128,56 @@ if __name__ == "__main__":
     f.write("sign_verif_time = " + repr(sign_verif_time) + "\n")
 
     f.close()
-
+    # cynthiao additions :: added min, max, standard deviation
+    
+    print "==CGA GENERATION TIMES=="
+    print "min CGA generation time: " + str(min(cga_gen_time))
+    print "max CGA generation time: " + str(max(cga_gen_time))
     print "mean CGA generation time: " + str(sum(cga_gen_time) / len(cga_gen_time))
+    
+    def average(cga_gen_time): return sum(cga_gen_time) * 1.0 / len(cga_gen_time)
+    avg = average(cga_gen_time)
+    variance = map(lambda x: (x - avg)**2, cga_gen_time)
+    average(variance)
+    stdGenDev = math.sqrt(average(variance))
+    print "deviation of CGA generation time: " + str(stdGenDev)
+
+    print "==CGA VERIFICATION TIMES=="
+    print "min CGA verification time: " + str(min(cga_verif_time))
+    print "max CGA verification time: " + str(max(cga_verif_time))
     print "mean CGA verification time: " + str(sum(cga_verif_time) / len(cga_verif_time))
+
+    def average(cga_verif_time): return sum(cga_verif_time) * 1.0 / len(cga_verif_time)
+    avg = average(cga_verif_time)
+    variance = map(lambda x: (x - avg)**2, cga_verif_time)
+    average(variance)
+    stdVerDev = math.sqrt(average(variance))
+    print "deviation of CGA verification time: " + str(stdVerDev)
+
+    print "==SIGNATURE GENERATION TIMES=="
+    print "min Signature generation time: " + str(min(sign_gen_time))
+    print "max Signature generation time: " + str(max(sign_gen_time))
     print "mean Signature generation time: " + str(sum(sign_gen_time) / len(sign_gen_time))
+
+    def average(sign_gen_time): return sum(sign_gen_time) * 1.0 / len(sign_gen_time)
+    avg = average(sign_gen_time)
+    variance = map(lambda x: (x - avg)**2, sign_gen_time)
+    average(variance)
+    stdSigDev = math.sqrt(average(variance))
+    print "deviation of Signature generation time: " + str(stdSigDev)
+    
+    print "==SIGNATURE VERIFICATION TIMES=="
+    print "min Signature verification time: " + str(min(sign_verif_time))
+    print "max Signature verification time: " + str(max(sign_verif_time))
     print "mean Signature verification time: " + str(sum(sign_verif_time) / len(sign_verif_time))
+
+    def average(sign_verif_time): return sum(sign_verif_time) * 1.0 / len(sign_verif_time)
+    avg = average(sign_verif_time)
+    variance = map(lambda x: (x - avg)**2, sign_verif_time)
+    average(variance)
+    stdSigVerDev = math.sqrt(average(variance))
+    print "deviation of Signature verification time: " + str(stdSigVerDev)
+
     # prof = cProfile.run("bench_single_ecc()","%d-key-ecc.prof" % extrakeynum)
 
 

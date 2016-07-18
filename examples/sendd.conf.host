@@ -35,7 +35,7 @@ NDprotector.mixed_mode = False
 
 # allow NDprotector to flush all the IPv6 addresses on all interfaces
 # (so that only CGA are on the interfaces)
-NDprotector.flush_interfaces = True
+NDprotector.flush_interfaces = False
 
 # /!\ Beware:
 # force test on X.509 IP Address extension
@@ -53,7 +53,7 @@ NDprotector.default_sec_value = 1
 # If True, the programm automotaticlally assign addresses on the interfaces
 # the program will also clean up and destroy unused addresses
 # If set to False, the user must to the address assignement manually
-NDprotector.assign_addresses = True
+NDprotector.assign_addresses = False
 
 
 # Default key size for RSA keys
@@ -70,7 +70,7 @@ NDprotector.max_RSA_key_size = 2048
 
 # Path to the default Public Key used for Stateless Address Autoconfiguration
 # if None is provided, generate a new RSA Public Key for new addresses
-NDprotector.default_publickey = None
+NDprotector.default_publickey = "/root/git/NDprotector/publicKeyB.pem"
 # NDprotector.default_publickey = "/etc/NDprotector/mypublickey.pem"
 
 # Path to the trust anchor
@@ -107,9 +107,11 @@ NDprotector.configured_addresses = \
 		        # ext = None ),
 
 			# list of configured prefixes where autoconfiguration will be applied
-			Address(interface = "eth0",
-			prefix = "fe80::",
-			key = "/root/git/NDprotector/examples/test/test_key.pem"), # if ommited,  uses the key pointed by default_publickey
+			# Address(interface = "eth0",
+			Address(interface = "eth1",
+			prefix = "2001:db8:0:100::",
+			key = "/root/git/NDprotector/privateKeyB.pem",
+			modifier = 50), # if ommited,  uses the key pointed by default_publickey
 			# or fallback (when default_publickey is None) and the program will compute a new RSA key
 			# Address(interface = "eth0", # for example this one will build it's own key
 			# prefix = "2001::",

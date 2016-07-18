@@ -233,6 +233,7 @@ class Address:
             self.__sec = ord(socket.inet_pton(\
                 socket.AF_INET6,self.__address)[8]) >> 5
 
+	    print "About to invoke CGAverify in Address.py, check 1" # jochoi: debug
             if not CGAverify(self.__address, CGAParams(modifier=modifier, prefix=self.__prefix, \
                             ccount = self.__collcount, pubkey = self.__pubkey, \
                             ext = ext)):
@@ -341,6 +342,7 @@ class Address:
                                     if packet.haslayer(ICMPv6ND_NS) and address == "::":
                                         address = packet.tgt
                                     # CGA address check
+				    print "About to invoke CGAverify in Address.py, check 2" # jochoi: debug
                                     if not  CGAverify(address,packet[CGAParams]):
                                         warn("one packet with an invalid CGA address was received during the DAD procedure\n")
                                         continue
