@@ -20,6 +20,7 @@ from math import * # cynthiao
 sigtypeID = 9
 extrakeynum =3
 
+key_gen_time = []
 cga_gen_time = []
 cga_verif_time = []
 sign_gen_time = []
@@ -74,7 +75,7 @@ def signature_verify(data,k):
     return IPv6(data)[ICMPv6NDOptUSSig].verify_sig(k)
 
 def compute_key():
-    return ECCkey(NID_secp256k1)
+    return ECCkey(NID_secp256k1) # jochoi: (observation) key is being generated with 256 bits?
 
 def gen_cga(key):
     return CGAgen("fe80::", key, 1,
@@ -82,7 +83,13 @@ def gen_cga(key):
 
 def bench_single_ecc():
     for i in range(100):
+	before = time.time()
         k = compute_key()
+	# print "key computed, %s" % k # jochoi: debug / should time tthe key generation
+	after = time.time()
+	# print "key generation took: %s" % str(after - before)
+	key_gen_time.append(after - before)
+
         # computes a CGA address
         before = time.time()
         (address, params) = gen_cga(k)
@@ -110,7 +117,6 @@ def bench_single_ecc():
 
         print "loop #%d computed, message size: %d" % (i, len(m))
 
-
 if __name__ == "__main__":
 
     try:
@@ -122,6 +128,7 @@ if __name__ == "__main__":
 
     f = open("%d-key-ecc-duration" % extrakeynum, "w")
 
+    f.write("key_gen_time = " + repr(key_gen_time) + "\n")
     f.write("cga_gen_time = " + repr(cga_gen_time) + "\n")
     f.write("cga_verif_time = " + repr(cga_verif_time) + "\n")
     f.write("sign_gen_time = " + repr(sign_gen_time) + "\n")
@@ -129,7 +136,19 @@ if __name__ == "__main__":
 
     f.close()
     # cynthiao additions :: added min, max, standard deviation
+   
+    print "==KEY GENERATION TIMES=="
+    print "min KEY Generation time: " + str(min(key_gen_time))
+    print "max KEY generation time: " + str(max(key_gen_time))
+    print "mean KEY generation time: " + str(sum(key_gen_time) / len(key_gen_time))
     
+    def average(key_gen_time): return sum(key_gen_time) * 1.0 / len(key_gen_time)
+    avg = average(key_gen_time)
+    variance = map(lambda x: (x - avg)**2, key_gen_time)
+    average(variance)
+    stdGenDev = math.sqrt(average(variance))
+    print "deviation of KEY generation time: " + str(stdGenDev)
+ 
     print "==CGA GENERATION TIMES=="
     print "min CGA generation time: " + str(min(cga_gen_time))
     print "max CGA generation time: " + str(max(cga_gen_time))
