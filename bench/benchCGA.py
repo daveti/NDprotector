@@ -117,6 +117,17 @@ def bench_single_ecc():
 
         print "loop #%d computed, message size: %d" % (i, len(m))
 
+def computeMdev(data, avg):
+	'''
+	Compute the mean deviation given the list and the average value
+	'''
+	num = len(data)
+	sum = 0.0
+	for d in data:
+		sum += abs(d - avg)
+
+	return(sum/num)
+
 if __name__ == "__main__":
 
     try:
@@ -148,6 +159,8 @@ if __name__ == "__main__":
     average(variance)
     stdGenDev = math.sqrt(average(variance))
     print "deviation of KEY generation time: " + str(stdGenDev)
+    mdev = computeMdev(key_gen_time, avg)
+    print "mean deviation of KEY generation time: " + str(mdev)
  
     print "==CGA GENERATION TIMES=="
     print "min CGA generation time: " + str(min(cga_gen_time))
@@ -160,6 +173,8 @@ if __name__ == "__main__":
     average(variance)
     stdGenDev = math.sqrt(average(variance))
     print "deviation of CGA generation time: " + str(stdGenDev)
+    mdev = computeMdev(cga_gen_time, avg)
+    print "mean deviation of KEY generation time: " + str(mdev)
 
     print "==CGA VERIFICATION TIMES=="
     print "min CGA verification time: " + str(min(cga_verif_time))
@@ -172,6 +187,8 @@ if __name__ == "__main__":
     average(variance)
     stdVerDev = math.sqrt(average(variance))
     print "deviation of CGA verification time: " + str(stdVerDev)
+    mdev = computeMdev(cga_verif_time, avg)
+    print "mean deviation of KEY generation time: " + str(mdev)
 
     print "==SIGNATURE GENERATION TIMES=="
     print "min Signature generation time: " + str(min(sign_gen_time))
@@ -184,6 +201,8 @@ if __name__ == "__main__":
     average(variance)
     stdSigDev = math.sqrt(average(variance))
     print "deviation of Signature generation time: " + str(stdSigDev)
+    mdev = computeMdev(sign_gen_time, avg)
+    print "mean deviation of KEY generation time: " + str(mdev)
     
     print "==SIGNATURE VERIFICATION TIMES=="
     print "min Signature verification time: " + str(min(sign_verif_time))
@@ -196,6 +215,8 @@ if __name__ == "__main__":
     average(variance)
     stdSigVerDev = math.sqrt(average(variance))
     print "deviation of Signature verification time: " + str(stdSigVerDev)
+    mdev = computeMdev(sign_verif_time, avg)
+    print "mean deviation of KEY generation time: " + str(mdev)
 
     # prof = cProfile.run("bench_single_ecc()","%d-key-ecc.prof" % extrakeynum)
 
